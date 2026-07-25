@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import ReactMarkdown from 'react-markdown';
 import {
   Plus, Search, Clock, Flag,
   Edit2, Trash2, Image as ImageIcon, X,
@@ -10,6 +11,7 @@ import {
 import { db, APP_ID } from '../config/firebase';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { AttachmentItem } from '../components/AttachmentItem';
+import RichTextEditor from '../components/RichTextEditor';
 import { uploadToCloudinary, getUrgency, getMinDateTime } from '../utils';
 import { useGlobalNotification } from '../context/NotificationContext';
 
@@ -66,6 +68,7 @@ export default function NoteModule({ user }) {
   const [previewNote, setPreviewNote] = useState(null);
   
   const [newAttachments, setNewAttachments] = useState([]);
+  const [editorContent, setEditorContent] = useState('');
   
   // 筛选和排序状态
   const [selectedTags, setSelectedTags] = useState([]);
@@ -178,7 +181,7 @@ export default function NoteModule({ user }) {
         title: fd.get('title'),
         priority: fd.get('priority'),
         deadline: fd.get('deadline'),
-        content: fd.get('content'),
+        content: editorContent,
         relatedText: fd.get('relatedText'),
         attachments: finalAttachments,
         attachment: null,
@@ -239,6 +242,7 @@ export default function NoteModule({ user }) {
   // 编辑笔记
   const handleEditNote = (note) => {
     setEditingNote(note);
+    setEditorContent(note?.content || '');
     setNewAttachments([]);
     setIsModalOpen(true);
     setIsPreviewOpen(false);
@@ -420,7 +424,11 @@ export default function NoteModule({ user }) {
           } />
         </div>
 
-        <p className="text-slate-500 dark:text-slate-400 text-sm line-clamp-3 mb-4 flex-1 whitespace-pre-wrap">{note.content}</p>
+        <div className="text-slate-500 dark:text-slate-400 text-sm line-clamp-3 mb-4 flex-1 overflow-hidden leading-relaxed">
+            <ReactMarkdown>
+              {note.content || ''}
+            </ReactMarkdown>
+          </div>
 
         {/* 标签 */}
         {noteTags.length > 0 && (
@@ -552,7 +560,7 @@ export default function NoteModule({ user }) {
           
           {/* 新建笔记 */}
           <button
-            onClick={() => { setEditingNote(null); setNewAttachments([]); setIsModalOpen(true); }}
+            onClick={() => { setEditingNote(null); setEditorContent(''); setNewAttachments([]); setIsModalOpen(true); }}
             className="bg-indigo-600 text-white p-2.5 rounded-xl font-bold flex items-center justify-center shadow-lg shadow-indigo-100 dark:shadow-none hover:bg-indigo-700 transition-transform active:scale-95"
             title="新建笔记"
           >
@@ -742,14 +750,11 @@ export default function NoteModule({ user }) {
                 />
               </div>
               
-              <textarea 
-                name="content" 
-                required 
-                rows="4" 
-                defaultValue={editingNote?.content} 
-                className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl outline-none resize-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-500/50 transition-all dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500" 
-                placeholder="详情描述..."
-              ></textarea>
+              <RichTextEditor
+                name="content"
+                value={editorContent}
+                onChange={setEditorContent}
+              />
 
               {/* 标签选择 */}
               <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
@@ -891,8 +896,10 @@ export default function NoteModule({ user }) {
               )}
               
               {/* 内容 */}
-              <div className="prose prose-sm dark:prose-invert max-w-none">
-                <p className="text-slate-600 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">{previewNote.content}</p>
+              <div className="prose prose-sm dark:prose-invert max-w-none text-slate-600 dark:text-slate-300 leading-relaxed">
+                <ReactMarkdown>
+                  {previewNote.content || '*暂无内容*'}
+                </ReactMarkdown>
               </div>
               
               {/* 备注 */}
