@@ -57,10 +57,14 @@ export default function AuthPage() {
       console.error(err);
       let msg = "操作失败，请重试";
       if (err.code === 'auth/email-already-in-use') msg = "该用户名已被注册";
-      if (err.code === 'auth/wrong-password') msg = "密码错误";
+      if (err.code === 'auth/wrong-password') msg = "密码错误，请检查密码是否正确";
       if (err.code === 'auth/user-not-found') msg = "账号不存在，请检查用户名或邮箱是否正确";
-      if (err.code === 'auth/invalid-email') msg = "账号格式不正确";
+      if (err.code === 'auth/invalid-email') msg = "邮箱格式不正确";
       if (err.code === 'auth/weak-password') msg = "密码太弱，请至少输入6位";
+      if (err.code === 'auth/user-disabled') msg = "账号已被禁用，请联系管理员";
+      if (err.code === 'auth/too-many-requests') msg = "登录失败次数过多，请稍后再试或通过忘记密码重置";
+      if (err.code === 'auth/network-request-failed') msg = "网络连接失败，请检查网络设置";
+      if (err.code === 'auth/internal-error') msg = "系统内部错误，请稍后重试";
       setError(msg);
     } finally {
       setLoading(false);
