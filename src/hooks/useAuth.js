@@ -7,7 +7,9 @@ import {
   verifyBeforeUpdateEmail, 
   sendPasswordResetEmail, 
   createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword 
+  signInWithEmailAndPassword,
+  reauthenticateWithCredential,
+  EmailAuthProvider
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { VIRTUAL_EMAIL_DOMAIN } from '../constants';
@@ -43,6 +45,18 @@ export const useAuthActions = () => {
    */
   const signOutUser = async () => {
     await signOut(auth);
+  };
+
+  /**
+   * 重新认证用户（用于敏感操作前验证）
+   * @param {string} currentPassword - 当前密码
+   * @returns {Promise<void>}
+   * @throws {Error} 如果没有用户登录或密码错误
+   */
+  const reauthenticateUser = async (currentPassword) => {
+    if (!auth.currentUser) throw new Error('No user logged in');
+    const credential = EmailAuthProvider.credential(auth.currentUser.email, currentPassword);
+    await reauthenticateWithCredential(auth.currentUser, credential);
   };
 
   /**
@@ -128,6 +142,7 @@ export const useAuthActions = () => {
 
   return {
     signOutUser,
+    reauthenticateUser,
     updateUserPassword,
     updateUserProfile,
     updateUserEmail,

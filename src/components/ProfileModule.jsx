@@ -6,8 +6,9 @@ import { maskEmail } from '../utils';
 import { VIRTUAL_EMAIL_DOMAIN } from '../constants';
 
 export const ProfileModule = ({ user, onLogout, onNavigate }) => {
-  const { updateUserProfile, updateUserPassword, updateUserEmail } = useAuthActions();
+  const { updateUserProfile, updateUserPassword, updateUserEmail, reauthenticateUser } = useAuthActions();
   const [isEditing, setIsEditing] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -62,18 +63,34 @@ export const ProfileModule = ({ user, onLogout, onNavigate }) => {
 
   const handlePasswordChange = async (e) => {
     e.preventDefault();
+    if (currentPassword.length < 6) {
+      setMsg({ text: '请输入当前密码', type: 'error' });
+      return;
+    }
     if (newPassword.length < 6) {
-      setMsg({ text: '密码至少需要6位', type: 'error' });
+      setMsg({ text: '新密码至少需要6位', type: 'error' });
+      return;
+    }
+    if (currentPassword === newPassword) {
+      setMsg({ text: '新密码不能与当前密码相同', type: 'error' });
       return;
     }
     setLoading(true);
     try {
+      await reauthenticateUser(currentPassword);
       await updateUserPassword(newPassword);
       setMsg({ text: '密码修改成功', type: 'success' });
+      setCurrentPassword('');
       setNewPassword('');
       setIsEditing(false);
-    } catch {
-      setMsg({ text: '修改失败，请退出重新登录后再试', type: 'error' });
+    } catch (error) {
+      if (error.code === 'auth/wrong-password') {
+        setMsg({ text: '当前密码输入错误', type: 'error' });
+      } else if (error.code === 'auth/requires-recent-login') {
+        setMsg({ text: '请先退出并重新登录后再修改密码', type: 'error' });
+      } else {
+        setMsg({ text: '修改失败: ' + error.message, type: 'error' });
+      }
     } finally {
       setLoading(false);
     }
@@ -227,6 +244,7 @@ export const ProfileModule = ({ user, onLogout, onNavigate }) => {
                   <X size={14} />
                 </button>
               </div>
+              <input type="password" placeholder="输入当前密码" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="w-full p-3 border border-slate-200 dark:border-slate-700 rounded-xl mb-4 bg-white dark:bg-slate-900 outline-none focus:ring-2 focus:ring-indigo-500 dark:text-slate-100" />
               <input type="password" placeholder="输入新密码 (至少6位)" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full p-3 border border-slate-200 dark:border-slate-700 rounded-xl mb-4 bg-white dark:bg-slate-900 outline-none focus:ring-2 focus:ring-indigo-500 dark:text-slate-100" />
               <div className="flex gap-3">
                 <button type="button" onClick={() => setIsEditing(false)} className="flex-1 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700">取消</button>
