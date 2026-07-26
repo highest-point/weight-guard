@@ -16,6 +16,11 @@ import { LimitSelector } from '../components/LimitSelector';
 import { PaginationControls } from '../components/PaginationControls';
 import { Card, StatCard } from '../components/Card';
 import { StatCardSkeleton } from '../components/Skeleton';
+import WeightTrendChart from '../components/charts/WeightTrendChart';
+import TaskCompletionTrendChart from '../components/charts/TaskCompletionTrendChart';
+import ModulePieChart from '../components/charts/ModulePieChart';
+import TaskStatusPieChart from '../components/charts/TaskStatusPieChart';
+import TaskHeatmapChart from '../components/charts/TaskHeatmapChart';
 
 export default function DashboardModule({ user, onNavigate, isDarkMode }) {
   const [tasks, setTasks] = useState([]);
@@ -412,6 +417,57 @@ export default function DashboardModule({ user, onNavigate, isDarkMode }) {
             gradient="indigo"
           />
         </div>
+
+        {/* 新增图表区域 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <Card className="flex flex-col">
+            <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2">
+              <Activity className="text-indigo-500" size={18} /> 体重趋势
+            </h3>
+            <div className="flex-1 h-64">
+              <WeightTrendChart weights={weights} isDarkMode={isDarkMode} />
+            </div>
+          </Card>
+
+          <Card className="flex flex-col">
+            <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2">
+              <Target className="text-green-500" size={18} /> 任务完成率趋势
+            </h3>
+            <div className="flex-1 h-64">
+              <TaskCompletionTrendChart tasks={tasks} isDarkMode={isDarkMode} />
+            </div>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <Card className="flex flex-col">
+            <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2">
+              <PieChart className="text-purple-500" size={18} /> 模块占比
+            </h3>
+            <div className="flex-1 h-64">
+              <ModulePieChart tasks={tasks} isDarkMode={isDarkMode} />
+            </div>
+          </Card>
+
+          <Card className="flex flex-col">
+            <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2">
+              <Briefcase className="text-amber-500" size={18} /> 任务状态分布
+            </h3>
+            <div className="flex-1 h-64">
+              <TaskStatusPieChart tasks={tasks} isDarkMode={isDarkMode} />
+            </div>
+          </Card>
+        </div>
+
+        {/* 热力图 */}
+        <Card className="flex flex-col">
+          <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2">
+            <Calendar className="text-rose-500" size={18} /> 任务时间分布热力图
+          </h3>
+          <div className="flex-1 h-80">
+            <TaskHeatmapChart tasks={tasks} isDarkMode={isDarkMode} />
+          </div>
+        </Card>
 
         <Card>
           <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-6">模块时间分配 (小时)</h3>
