@@ -28,7 +28,39 @@ export const EVENT_COLORS = [
 ];
 
 // Priority Map
-export const PRIORITY_MAP = { '紧急': 1, '重要': 2, '休闲': 3 };
+export const PRIORITY_MAP = { '紧急': 1, '高': 2, '中': 3, '低': 4 };
+
+// Priority Configuration
+export const PRIORITY_CONFIG = {
+  '紧急': { 
+    label: '紧急', 
+    color: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400',
+    dot: 'bg-red-500',
+    icon: 'AlertTriangle',
+    weight: 1 
+  },
+  '高': { 
+    label: '高', 
+    color: 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400',
+    dot: 'bg-orange-500',
+    icon: 'Flame',
+    weight: 2 
+  },
+  '中': { 
+    label: '中', 
+    color: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
+    dot: 'bg-blue-500',
+    icon: 'Circle',
+    weight: 3 
+  },
+  '低': { 
+    label: '低', 
+    color: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
+    dot: 'bg-slate-500',
+    icon: 'Minus',
+    weight: 4 
+  },
+};
 
 // Default Exercise Database
 export const DEFAULT_EXERCISE_DB = [
@@ -52,10 +84,53 @@ export const AI_KNOWLEDGE_BASE = {
 // Initial Food Database
 export const INITIAL_FOOD_DB = { breakfast: [], lunch: [], dinner: [], snack: [], treat: [] };
 
-// Plan Status Colors
+// Status Configuration
+export const PLAN_STATUS_CONFIG = {
+  pending: { 
+    label: '待开始', 
+    color: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
+    dot: 'bg-slate-500',
+    icon: 'Clock'
+  },
+  active: { 
+    label: '进行中', 
+    color: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
+    dot: 'bg-blue-500',
+    icon: 'Play'
+  },
+  completed: { 
+    label: '已完成', 
+    color: 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400',
+    dot: 'bg-green-500',
+    icon: 'CheckCircle2'
+  },
+  paused: { 
+    label: '已暂停', 
+    color: 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400',
+    dot: 'bg-amber-500',
+    icon: 'Pause'
+  },
+  cancelled: { 
+    label: '已取消', 
+    color: 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-500',
+    dot: 'bg-gray-400',
+    icon: 'XCircle'
+  },
+};
+
+// Status Transition Rules
+export const STATUS_TRANSITIONS = {
+  pending: ['active', 'cancelled'],
+  active: ['completed', 'paused', 'cancelled'],
+  completed: [],
+  paused: ['active', 'cancelled'],
+  cancelled: [],
+};
+
+// Plan Status Colors (backward compatibility)
 export const PLAN_STATUS_COLORS = {
-  pending: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
-  completed: 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400',
+  pending: PLAN_STATUS_CONFIG.pending.color,
+  completed: PLAN_STATUS_CONFIG.completed.color,
 };
 
 // Chart Colors

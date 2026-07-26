@@ -5,12 +5,13 @@ import {
   Search, CheckCircle2, Circle, ArrowUpDown, Copy, LayoutTemplate,
   File as FileIcon, Eye, Download, FileText as PdfIcon, RotateCcw,
   MessageSquare, Quote, Sparkles, CalendarRange, List, Link as LinkIcon,
-  GanttChartSquare, GanttChart, ChevronUp, ChevronDown, Wand2, FileSpreadsheet
+  GanttChartSquare, GanttChart, ChevronUp, ChevronDown, Wand2, FileSpreadsheet,
+  AlertTriangle, Flame, Minus, Play, Pause, XCircle
 } from 'lucide-react';
 import { db, APP_ID } from '../config/firebase';
 import { doc, onSnapshot, setDoc } from "firebase/firestore";
 import * as XLSX from 'xlsx';
-import { VOLCENGINE_API_KEY, VOLCENGINE_ENDPOINT, EVENT_COLORS, PRIORITY_MAP } from '../constants';
+import { VOLCENGINE_API_KEY, VOLCENGINE_ENDPOINT, EVENT_COLORS, PRIORITY_MAP, PRIORITY_CONFIG, PLAN_STATUS_CONFIG, STATUS_TRANSITIONS } from '../constants';
 import { uploadToCloudinary, calculateDuration } from '../utils';
 import { AttachmentItem, ModuleManager, CalendarEventModal } from '../components';
 
@@ -291,6 +292,21 @@ export default function TaskModule({ user }) {
     await saveToCloud(updatedPlans);
   };
 
+  const handleStatusChange = async (planId, newStatus) => {
+    const plan = plans.find(p => p.id === planId);
+    if (!plan) return;
+    
+    const allowedTransitions = STATUS_TRANSITIONS[plan.status] || [];
+    if (!allowedTransitions.includes(newStatus)) {
+      alert(`状态转换不允许：${getStatusLabel(plan.status)} → ${getStatusLabel(newStatus)}`);
+      return;
+    }
+    
+    const updatedPlans = plans.map(p => p.id === planId ? { ...p, status: newStatus } : p);
+    setPlans(updatedPlans);
+    await saveToCloud(updatedPlans);
+  };
+
   const handleDeleteTodayPlans = async () => {
     const dayPlans = plans.filter(p => p.date === currentDate);
     if (dayPlans.length === 0) {
@@ -351,7 +367,7 @@ export default function TaskModule({ user }) {
       relatedEventTitle: relatedEvent ? relatedEvent.title : null, 
       attachments: finalAttachments, 
       attachment: null, 
-      status: editingPlan?.status || 'pending',
+      status: fd.get('status') || 'pending',
       reflection: editingPlan?.reflection || null, 
       checklist: editingChecklist 
     };
@@ -1292,12 +1308,13 @@ export default function TaskModule({ user }) {
 
   const isViewingPast = currentDate < todayStr;
   const getTagStyle = (tag) => {
-    switch(tag) {
-      case '紧急': return 'bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 border-red-100 dark:border-red-800';
-      case '重要': return 'bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 border-orange-100 dark:border-orange-800';
-      case '休闲': return 'bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 border-green-100 dark:border-green-800';
-      default: return 'bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 border-slate-100 dark:border-slate-700';
-    }
+    return PRIORITY_CONFIG[tag]?.color || 'bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 border-slate-100 dark:border-slate-700';
+  };
+  const getStatusStyle = (status) => {
+    return PLAN_STATUS_CONFIG[status]?.color || 'bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 border-slate-100 dark:border-slate-700';
+  };
+  const getStatusLabel = (status) => {
+    return PLAN_STATUS_CONFIG[status]?.label || status;
   };
 
   return (
@@ -1786,12 +1803,22 @@ export default function TaskModule({ user }) {
 
                             <div className="flex flex-wrap gap-2">
                             <span className="text-[10px] px-2 py-0.5 bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded border border-slate-200 dark:border-slate-700 font-medium">{plan.module} · {plan.sub || '常规'}</span>
-                            {plan.tag !== '无' && <span className={`text-[10px] px-2 py-0.5 rounded border font-bold ${getTagStyle(plan.tag)}`}>{plan.tag}</span>}
+                            {plan.tag && <span className={`text-[10px] px-2 py-0.5 rounded border font-bold ${getTagStyle(plan.tag)}`}>{plan.tag}</span>}
+                            <span className={`text-[10px] px-2 py-0.5 rounded border font-medium ${getStatusStyle(plan.status)}`}>{getStatusLabel(plan.status)}</span>
                             </div>
                         </div>
                         
                         {canEditOrDelete && (
                             <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <select 
+                              value={plan.status}
+                              onChange={(e) => handleStatusChange(plan.id, e.target.value)}
+                              className="text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1.5 text-slate-600 dark:text-slate-300 outline-none focus:border-indigo-500"
+                            >
+                              {Object.keys(PLAN_STATUS_CONFIG).map(s => (
+                                <option key={s} value={s}>{PLAN_STATUS_CONFIG[s].label}</option>
+                              ))}
+                            </select>
                             <button onClick={() => { setEditingPlan(plan); setNewAttachments([]); setPreSelectedEventId(plan.relatedEventId); setIsModalOpen(true); }} className="p-2 text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg"><Edit2 size={16}/></button>
                             <button onClick={() => deletePlan(plan.id)} className="p-2 text-slate-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg"><Trash2 size={16}/></button>
                             </div>
@@ -2099,11 +2126,24 @@ export default function TaskModule({ user }) {
 
             <div className="grid grid-cols-2 gap-4 mt-4">
                 <div>
-                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 flex items-center gap-1"><Tag size={12}/> 标签</label>
-                  <select name="tag" defaultValue={editingPlan?.tag || '无'} key={editingPlan?.tag} className="w-full border border-slate-200 dark:border-slate-700 p-3 rounded-xl outline-none bg-slate-50 dark:bg-slate-800 dark:text-slate-200">
-                    <option>无</option><option>紧急</option><option>重要</option><option>休闲</option>
+                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 flex items-center gap-1"><AlertTriangle size={12}/> 优先级</label>
+                  <select name="tag" defaultValue={editingPlan?.tag || '中'} key={editingPlan?.tag} className="w-full border border-slate-200 dark:border-slate-700 p-3 rounded-xl outline-none bg-slate-50 dark:bg-slate-800 dark:text-slate-200">
+                    {Object.keys(PRIORITY_CONFIG).map(p => (
+                      <option key={p} value={p}>{PRIORITY_CONFIG[p].label}</option>
+                    ))}
                   </select>
                 </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 flex items-center gap-1"><Clock size={12}/> 状态</label>
+                  <select name="status" defaultValue={editingPlan?.status || 'pending'} key={editingPlan?.status} className="w-full border border-slate-200 dark:border-slate-700 p-3 rounded-xl outline-none bg-slate-50 dark:bg-slate-800 dark:text-slate-200">
+                    {Object.keys(PLAN_STATUS_CONFIG).map(s => (
+                      <option key={s} value={s}>{PLAN_STATUS_CONFIG[s].label}</option>
+                    ))}
+                  </select>
+                </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4 mt-4">
                 <div>
                   <label className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 flex items-center gap-1"><Paperclip size={12}/> 附件 (可多选)</label>
                   <div className="relative group">
@@ -2113,6 +2153,12 @@ export default function TaskModule({ user }) {
                        <span className="truncate text-slate-500 dark:text-slate-400">{isSaving ? '正在上传...' : '点击添加附件'}</span>
                     </div>
                   </div>
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 flex items-center gap-1"><Layers size={12}/> 模块</label>
+                  <select name="module" defaultValue={editingPlan?.module || '生活'} key={editingPlan?.module} className="w-full border border-slate-200 dark:border-slate-700 p-3 rounded-xl outline-none bg-slate-50 dark:bg-slate-800 dark:text-slate-200">
+                    <option>生活</option><option>学习</option><option>工作</option><option>运动</option><option>其他</option>
+                  </select>
                 </div>
             </div>
             
