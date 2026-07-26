@@ -7,6 +7,8 @@ const DEFAULT_SETTINGS = {
   // 主题设置
   theme: 'system', // 'light', 'dark', 'system'
   themeColor: 'indigo', // 'indigo', 'blue', 'purple', 'pink', 'orange', 'green', 'teal'
+  background: 'default', // 'default', 'gradient', 'pattern', 'image'
+  fontFamily: 'default', // 'default', 'sans', 'serif', 'mono', 'rounded'
   
   // 通知设置
   notifications: {
@@ -90,6 +92,56 @@ export const THEME_COLORS = {
     secondary: '#2dd4bf',
     bgGradient: 'from-teal-500 to-cyan-600',
     name: '青色',
+  },
+};
+
+/**
+ * 背景样式配置
+ */
+export const BACKGROUND_STYLES = {
+  default: {
+    name: '默认',
+    className: 'bg-slate-50/50 dark:bg-slate-950',
+  },
+  gradient: {
+    name: '渐变',
+    className: 'bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-slate-900 dark:via-slate-950 dark:to-indigo-950',
+  },
+  pattern: {
+    name: '图案',
+    className: 'bg-slate-50 dark:bg-slate-950',
+    pattern: true,
+  },
+  image: {
+    name: '图片',
+    className: 'bg-slate-50 dark:bg-slate-950',
+    image: true,
+  },
+};
+
+/**
+ * 字体配置
+ */
+export const FONT_FAMILIES = {
+  default: {
+    name: '默认',
+    fontFamily: 'font-sans',
+  },
+  sans: {
+    name: '无衬线',
+    fontFamily: '"Inter", "PingFang SC", "Microsoft YaHei", sans-serif',
+  },
+  serif: {
+    name: '衬线',
+    fontFamily: '"Noto Serif SC", "Source Han Serif SC", "Songti SC", serif',
+  },
+  mono: {
+    name: '等宽',
+    fontFamily: '"JetBrains Mono", "Fira Code", "Consolas", monospace',
+  },
+  rounded: {
+    name: '圆润',
+    fontFamily: '"Nunito", "Quicksand", "PingFang SC", sans-serif',
   },
 };
 
@@ -185,6 +237,20 @@ export const SettingsProvider = ({ children }) => {
   }, []);
 
   /**
+   * 设置背景样式
+   */
+  const setBackground = useCallback((background) => {
+    setSettings((prev) => ({ ...prev, background }));
+  }, []);
+
+  /**
+   * 设置字体
+   */
+  const setFontFamily = useCallback((fontFamily) => {
+    setSettings((prev) => ({ ...prev, fontFamily }));
+  }, []);
+
+  /**
    * 获取当前是否为暗色模式
    */
   const isDarkMode = useCallback(() => {
@@ -206,8 +272,12 @@ export const SettingsProvider = ({ children }) => {
         resetSettings,
         toggleTheme,
         setThemeColor,
+        setBackground,
+        setFontFamily,
         isDarkMode,
         THEME_COLORS,
+        BACKGROUND_STYLES,
+        FONT_FAMILIES,
       }}
     >
       {children}
@@ -229,8 +299,12 @@ export const useSettings = () => {
       resetSettings: () => {},
       toggleTheme: () => {},
       setThemeColor: () => {},
+      setBackground: () => {},
+      setFontFamily: () => {},
       isDarkMode: () => false,
       THEME_COLORS,
+      BACKGROUND_STYLES,
+      FONT_FAMILIES,
     };
   }
   return context;

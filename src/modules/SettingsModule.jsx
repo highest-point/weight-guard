@@ -19,6 +19,9 @@ import {
   Droplets,
   Flame,
   Scale,
+  Palette,
+  Type,
+  Image,
 } from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
 import { useGlobalNotification } from '../context/NotificationContext';
@@ -32,8 +35,12 @@ export default function SettingsModule() {
     updateNestedSettings,
     toggleTheme,
     setThemeColor,
+    setBackground,
+    setFontFamily,
     resetSettings,
     THEME_COLORS,
+    BACKGROUND_STYLES,
+    FONT_FAMILIES,
   } = useSettings();
   const showNotification = useGlobalNotification();
   const [activeSection, setActiveSection] = useState('theme');
@@ -128,45 +135,122 @@ export default function SettingsModule() {
       </div>
 
       <div className="p-6 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 bg-purple-100 dark:bg-purple-500/20 rounded-lg">
-            <Heart className="text-purple-600 dark:text-purple-400" size={20} />
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-purple-100 dark:bg-purple-500/20 rounded-lg">
+              <Heart className="text-purple-600 dark:text-purple-400" size={20} />
+            </div>
+            <div>
+              <h3 className="font-bold text-slate-800 dark:text-slate-100">主题色彩</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400">选择应用的主色调</p>
+            </div>
           </div>
-          <div>
-            <h3 className="font-bold text-slate-800 dark:text-slate-100">主题色彩</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400">选择应用的主色调</p>
+
+          <div className="grid grid-cols-4 gap-3">
+            {Object.entries(THEME_COLORS).map(([key, color]) => (
+              <button
+                key={key}
+                onClick={() => setThemeColor(key)}
+                className={`relative p-3 rounded-xl border-2 transition-all ${
+                  settings.themeColor === key
+                    ? 'border-slate-300 dark:border-slate-500 shadow-md'
+                    : 'border-transparent hover:scale-105'
+                }`}
+                style={{
+                  backgroundColor: `${color.primary}20`,
+                }}
+                title={color.name}
+              >
+                <div
+                  className="w-8 h-8 rounded-full mx-auto"
+                  style={{ backgroundColor: color.primary }}
+                />
+                {settings.themeColor === key && (
+                  <Check
+                    className="absolute -top-1 -right-1 w-5 h-5 bg-white dark:bg-slate-800 rounded-full text-slate-600 dark:text-slate-300 shadow-sm"
+                    size={14}
+                  />
+                )}
+              </button>
+            ))}
           </div>
         </div>
 
-        <div className="grid grid-cols-4 gap-3">
-          {Object.entries(THEME_COLORS).map(([key, color]) => (
-            <button
-              key={key}
-              onClick={() => setThemeColor(key)}
-              className={`relative p-3 rounded-xl border-2 transition-all ${
-                settings.themeColor === key
-                  ? 'border-slate-300 dark:border-slate-500 shadow-md'
-                  : 'border-transparent hover:scale-105'
-              }`}
-              style={{
-                backgroundColor: `${color.primary}20`,
-              }}
-              title={color.name}
-            >
-              <div
-                className="w-8 h-8 rounded-full mx-auto"
-                style={{ backgroundColor: color.primary }}
-              />
-              {settings.themeColor === key && (
-                <Check
-                  className="absolute -top-1 -right-1 w-5 h-5 bg-white dark:bg-slate-800 rounded-full text-slate-600 dark:text-slate-300 shadow-sm"
-                  size={14}
-                />
-              )}
-            </button>
-          ))}
+        <div className="p-6 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-gradient-to-br from-indigo-100 to-purple-100 dark:bg-indigo-500/20 rounded-lg">
+              <Image className="text-indigo-600 dark:text-indigo-400" size={20} />
+            </div>
+            <div>
+              <h3 className="font-bold text-slate-800 dark:text-slate-100">背景样式</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400">选择应用的背景效果</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-4 gap-3">
+            {Object.entries(BACKGROUND_STYLES).map(([key, style]) => (
+              <button
+                key={key}
+                onClick={() => setBackground(key)}
+                className={`relative p-4 rounded-xl border-2 transition-all ${
+                  settings.background === key
+                    ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10'
+                    : 'border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600 bg-white dark:bg-slate-800'
+                }`}
+              >
+                <div className={`w-full h-10 rounded-lg mb-2 ${style.className}`} />
+                <span className="text-xs font-medium text-slate-700 dark:text-slate-200">
+                  {style.name}
+                </span>
+                {settings.background === key && (
+                  <Check
+                    className="absolute -top-1 -right-1 w-5 h-5 bg-indigo-500 rounded-full text-white shadow-sm"
+                    size={14}
+                  />
+                )}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+
+        <div className="p-6 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-blue-100 dark:bg-blue-500/20 rounded-lg">
+              <Type className="text-blue-600 dark:text-blue-400" size={20} />
+            </div>
+            <div>
+              <h3 className="font-bold text-slate-800 dark:text-slate-100">字体风格</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400">选择应用的字体样式</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-5 gap-3">
+            {Object.entries(FONT_FAMILIES).map(([key, font]) => (
+              <button
+                key={key}
+                onClick={() => setFontFamily(key)}
+                className={`relative p-4 rounded-xl border-2 transition-all ${
+                  settings.fontFamily === key
+                    ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10'
+                    : 'border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600 bg-white dark:bg-slate-800'
+                }`}
+                style={{ fontFamily: font.fontFamily }}
+              >
+                <div className="text-center">
+                  <span className="text-lg font-medium text-slate-700 dark:text-slate-200">Aa</span>
+                  <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    {font.name}
+                  </div>
+                </div>
+                {settings.fontFamily === key && (
+                  <Check
+                    className="absolute -top-1 -right-1 w-5 h-5 bg-indigo-500 rounded-full text-white shadow-sm"
+                    size={14}
+                  />
+                )}
+              </button>
+            ))}
+          </div>
+</div>
     </div>
   );
 

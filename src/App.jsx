@@ -3,7 +3,7 @@ import { PanelLeft, PanelLeftClose, Sun, Moon, Loader2, Search, Bell, ChevronDow
 import { useAuth, useAuthActions } from './hooks/useAuth';
 import { useNotification, NotificationComponent } from './hooks/useNotification';
 import { NotificationContext } from './context/NotificationContext';
-import { SettingsProvider, useSettings } from './context/SettingsContext';
+import { SettingsProvider, useSettings, THEME_COLORS, BACKGROUND_STYLES, FONT_FAMILIES } from './context/SettingsContext';
 import { Sidebar } from './components/Sidebar';
 import { ProfileModule } from './components/ProfileModule';
 
@@ -69,7 +69,13 @@ function AppContent() {
     } else {
       document.documentElement.classList.remove('dark');
     }
-  }, [isDarkMode]);
+    
+    // 应用主题色
+    Object.keys(THEME_COLORS).forEach(color => {
+      document.documentElement.classList.remove(`theme-${color}`);
+    });
+    document.documentElement.classList.add(`theme-${settings.themeColor}`);
+  }, [isDarkMode, settings.themeColor]);
 
   // 认证加载中显示loading
   if (authLoading) {
@@ -126,8 +132,11 @@ function AppContent() {
 
   return (
     <NotificationContext.Provider value={showNotification}>
-      <div className="flex h-screen bg-slate-50/50 dark:bg-slate-950 font-sans text-slate-600 dark:text-slate-300 overflow-hidden transition-colors duration-300">
-        <Sidebar activeTab={view} onTabChange={setView} user={user} isOpen={isSidebarOpen} />
+      <div 
+        className={`flex h-screen font-sans text-slate-600 dark:text-slate-300 overflow-hidden transition-colors duration-300 ${BACKGROUND_STYLES[settings.background]?.className}`}
+        style={{ fontFamily: FONT_FAMILIES[settings.fontFamily]?.fontFamily }}
+      >
+        <Sidebar activeTab={view} onTabChange={setView} user={user} isOpen={isSidebarOpen} isDarkMode={isDarkMode()} />
 
         <main className="flex-1 flex flex-col h-full relative overflow-hidden transition-all duration-300">
           <header className="h-16 px-6 flex items-center justify-between bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 z-10 sticky top-0 transition-all duration-300">
